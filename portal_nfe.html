@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal da Prefeitura - Consulta NF-e</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; color: #333; }
+
+.header {
+  background: #1a3a6b;
+  color: white;
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.header .brasao {
+  width: 48px; height: 48px;
+  background: #ffd700;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: bold; color: #1a3a6b;
+}
+.header h1 { font-size: 20px; font-weight: 600; }
+
+/* LOGIN */
+.login-container {
+  max-width: 420px;
+  margin: 80px auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 40px;
+}
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 8px;
+  color: #1a3a6b;
+  font-size: 22px;
+}
+.login-container .subtitulo {
+  text-align: center;
+  color: #666;
+  margin-bottom: 30px;
+  font-size: 14px;
+}
+.campo { margin-bottom: 18px; }
+.campo label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.campo input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border 0.2s;
+}
+.campo input:focus {
+  border-color: #1a3a6b;
+  outline: none;
+}
+.btn-entrar {
+  width: 100%;
+  padding: 14px;
+  background: #1a3a6b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+.btn-entrar:hover { background: #152f56; }
+
+/* DASHBOARD */
+.dashboard { display: none; padding: 30px 40px; }
+.dashboard.ativo { display: block; }
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+.dashboard-header h2 { color: #1a3a6b; font-size: 20px; }
+.usuario-info {
+  background: #e8eef7;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #1a3a6b;
+  font-weight: 600;
+}
+.btn-sair {
+  padding: 8px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+.btn-sair:hover { background: #c82333; }
+
+.resumo-meses {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.badge-mes {
+  background: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border-left: 4px solid #1a3a6b;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.tabela-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 750px;
+}
+thead { background: #1a3a6b; color: white; }
+th {
+  padding: 14px 12px;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+tbody tr:hover { background: #f5f8ff; }
+
+.valor { font-weight: 700; color: #1a3a6b; }
+.data { white-space: nowrap; }
+
+.btn-download {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  margin-right: 4px;
+  transition: opacity 0.2s;
+}
+.btn-download:hover { opacity: 0.85; }
+.btn-xml { background: #ff9800; color: white; }
+.btn-pdf { background: #e53935; color: white; }
+
+.msg-login { display: none; color: #e53935; text-align: center; margin-top: 12px; font-size: 13px; }
+
+.footer-info {
+  margin-top: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="brasao">&#9733;</div>
+  <h1>Portal da Prefeitura Municipal — Notas Fiscais Eletrônicas</h1>
+</div>
+
+<!-- TELA DE LOGIN -->
+<div class="login-container" id="tela-login">
+  <h2>Acesso ao Sistema</h2>
+  <p class="subtitulo">Informe suas credenciais para continuar</p>
+
+  <div class="campo">
+    <label>CPF / CNPJ</label>
+    <input type="text" id="cpf" placeholder="000.000.000-00">
+  </div>
+  <div class="campo">
+    <label>Senha</label>
+    <input type="password" id="senha" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;">
+  </div>
+
+  <button class="btn-entrar" id="btn-entrar">Entrar no Portal</button>
+  <p class="msg-login" id="msg-erro">Preencha os campos para continuar.</p>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h2>Notas Fiscais Disponíveis</h2>
+      <div class="resumo-meses" id="resumo-meses"></div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="usuario-info" id="usuario-logado"></span>
+      <button class="btn-sair" id="btn-sair">Sair</button>
+    </div>
+  </div>
+
+  <div class="tabela-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Nº NF-e</th>
+          <th>Data Emissão</th>
+          <th>Valor (R$)</th>
+          <th>Fornecedor</th>
+          <th>XML</th>
+          <th>PDF</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-nfe"></tbody>
+    </table>
+  </div>
+
+  <p class="footer-info">Portal da Prefeitura v3.2 — Acesso restrito a contribuintes cadastrados</p>
+</div>
+
+<script>
+// ============================================================
+// DADOS FICTÍCIOS DAS NF-e (15 notas em 3 meses)
+// ============================================================
+const notasFiscais = [
+  // Janeiro 2025
+  { numero: "NF-0001", data: "05/01/2025", valor: "1.250,00", fornecedor: "Distribuidora ABC Ltda", mes: "2025-01" },
+  { numero: "NF-0002", data: "12/01/2025", valor: "3.800,50", fornecedor: "Tech Suprimentos S.A.", mes: "2025-01" },
+  { numero: "NF-0003", data: "18/01/2025", valor: "920,30", fornecedor: "Papelaria Central", mes: "2025-01" },
+  { numero: "NF-0004", data: "25/01/2025", valor: "5.600,00", fornecedor: "Construtora Nova Era", mes: "2025-01" },
+  { numero: "NF-0005", data: "30/01/2025", valor: "2.150,75", fornecedor: "Serviços Gerais Oliveira", mes: "2025-01" },
+  // Fevereiro 2025
+  { numero: "NF-0006", data: "03/02/2025", valor: "4.300,00", fornecedor: "Distribuidora ABC Ltda", mes: "2025-02" },
+  { numero: "NF-0007", data: "10/02/2025", valor: "1.780,20", fornecedor: "InfoTech Comércio Digital", mes: "2025-02" },
+  { numero: "NF-0008", data: "15/02/2025", valor: "6.500,00", fornecedor: "Construtora Nova Era", mes: "2025-02" },
+  { numero: "NF-0009", data: "20/02/2025", valor: "890,00", fornecedor: "Papelaria Central", mes: "2025-02" },
+  { numero: "NF-0010", data: "27/02/2025", valor: "2.340,90", fornecedor: "Serviços Gerais Oliveira", mes: "2025-02" },
+  // Março 2025
+  { numero: "NF-0011", data: "05/03/2025", valor: "3.100,00", fornecedor: "Tech Suprimentos S.A.", mes: "2025-03" },
+  { numero: "NF-0012", data: "11/03/2025", valor: "7.200,00", fornecedor: "Construtora Nova Era", mes: "2025-03" },
+  { numero: "NF-0013", data: "18/03/2025", valor: "1.450,30", fornecedor: "Distribuidora ABC Ltda", mes: "2025-03" },
+  { numero: "NF-0014", data: "22/03/2025", valor: "980,50", fornecedor: "InfoTech Comércio Digital", mes: "2025-03" },
+  { numero: "NF-0015", data: "28/03/2025", valor: "4.670,00", fornecedor: "Serviços Gerais Oliveira", mes: "2025-03" },
+];
+
+// ============================================================
+// GERAR CONTEÚDO SIMULADO DOS ARQUIVOS
+// ============================================================
+function gerarXML(nota) {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+  <NFe>
+    <infNFe Id="${nota.numero}" versao="4.00">
+      <ide><cUF>35</cUF><dhEmi>${nota.data}T10:30:00-03:00</dhEmi></ide>
+      <emit><xNome>Prefeitura Municipal</xNome><CNPJ>00.000.000/0001-00</CNPJ></emit>
+      <dest><xNome>${nota.fornecedor}</xNome><CNPJ>11.111.111/0001-11</CNPJ></dest>
+      <total><ICMSTot><vNF>${nota.valor}</vNF></ICMSTot></total>
+    </infNFe>
+  </NFe>
+</nfeProc>`;
+}
+
+function gerarPDF(nota) {
+  return `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1 5 0 R>>>>>>endobj
+4 0 obj<</Length 180>>stream
+BT /F1 14 Tf 50 720 Td (NOTA FISCAL ELETRONICA) Tj
+/F1 12 Tf 50 690 Td (Numero: ${nota.numero}) Tj
+/F1 12 Tf 50 670 Td (Data: ${nota.data}) Tj
+/F1 12 Tf 50 650 Td (Fornecedor: ${nota.fornecedor}) Tj
+/F1 12 Tf 50 630 Td (Valor: R$ ${nota.valor}) Tj
+ET
+endstream endobj
+5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000236 00000 n 
+0000000468 00000 n 
+trailer<</Size 6/Root 1 0 R>>
+startxref
+573
+%%EOF`;
+}
+
+function baixarArquivo(nota, tipo) {
+  const conteudo = tipo === "xml" ? gerarXML(nota) : gerarPDF(nota);
+  const mime = tipo === "xml" ? "application/xml" : "application/pdf";
+  const blob = new Blob([conteudo], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${nota.numero}.${tipo}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Funcao exposta para o bot acessar o conteudo via page.evaluate()
+function getConteudoNota(numero, tipo) {
+  const nota = notasFiscais.find(n => n.numero === numero);
+  if (!nota) return "";
+  return tipo === "xml" ? gerarXML(nota) : gerarPDF(nota);
+}
+
+// ============================================================
+// NAVEGACAO ENTRE TELAS
+// ============================================================
+document.getElementById("btn-entrar").addEventListener("click", function() {
+  const cpf = document.getElementById("cpf").value.trim();
+  const senha = document.getElementById("senha").value.trim();
+  const msg = document.getElementById("msg-erro");
+
+  if (!cpf || !senha) {
+    msg.style.display = "block";
+    return;
+  }
+
+  msg.style.display = "none";
+  document.getElementById("tela-login").style.display = "none";
+  document.getElementById("dashboard").classList.add("ativo");
+  document.getElementById("usuario-logado").textContent = "Bem-vindo, " + cpf;
+
+  renderizarTabela();
+});
+
+document.getElementById("btn-sair").addEventListener("click", function() {
+  document.getElementById("tela-login").style.display = "block";
+  document.getElementById("dashboard").classList.remove("ativo");
+  document.getElementById("cpf").value = "";
+  document.getElementById("senha").value = "";
+});
+
+// ============================================================
+// RENDERIZAR TABELA E RESUMO
+// ============================================================
+function renderizarTabela() {
+  const tbody = document.getElementById("tabela-nfe");
+  tbody.innerHTML = "";
+
+  const contagemMeses = {};
+
+  notasFiscais.forEach(nota => {
+    contagemMeses[nota.mes] = (contagemMeses[nota.mes] || 0) + 1;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><strong>${nota.numero}</strong></td>
+      <td class="data">${nota.data}</td>
+      <td class="valor">R$ ${nota.valor}</td>
+      <td>${nota.fornecedor}</td>
+      <td>
+        <button class="btn-download btn-xml" onclick="baixarArquivo(${JSON.stringify(nota)}, 'xml')">
+          Baixar XML
+        </button>
+      </td>
+      <td>
+        <button class="btn-download btn-pdf" onclick="baixarArquivo(${JSON.stringify(nota)}, 'pdf')">
+          Baixar PDF
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const nomesMeses = { "2025-01": "Janeiro", "2025-02": "Fevereiro", "2025-03": "Março" };
+  const resumoEl = document.getElementById("resumo-meses");
+  resumoEl.innerHTML = "";
+  for (const [mes, qtd] of Object.entries(contagemMeses)) {
+    const badge = document.createElement("span");
+    badge.className = "badge-mes";
+    badge.textContent = `${nomesMeses[mes] || mes}: ${qtd} NF-e`;
+    resumoEl.appendChild(badge);
+  }
+}
+</script>
+
+</body>
+</html>
